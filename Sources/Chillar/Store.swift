@@ -476,11 +476,12 @@ final class Store: ObservableObject {
     var dayHigh: Double? { dayRange.high }
     var dayLow: Double? { dayRange.low }
 
-    /// Return on capital in use: margin utilised if known, else premium paid.
+    /// Return on capital in use: the larger of margin utilised and premium paid.
     var returnPct: Double? {
-        // Dhan can report 0 margin used for carried-forward option buys; fall back to premium paid.
+        // Dhan debits option-buy premium from the balance rather than counting it as margin, so
+        // "used" can be just charges (e.g. ₹62 against ₹14k of premium); sellers are the reverse.
         let used = funds?.used ?? 0
-        let base = used > 0 ? used : positions.reduce(0) { $0 + $1.buyValue }
+        let base = max(used, positions.reduce(0) { $0 + $1.buyValue })
         return base > 0 ? totalPnL / base * 100 : nil
     }
 
