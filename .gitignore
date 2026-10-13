@@ -1,0 +1,11 @@
+build/
+.build/
+.swiftpm/
+*.xcodeproj/
+.DS_Store
+# Never commit API responses or tokens
+*.p12
+*.pem
+/positions.json
+/funds.json
+.env

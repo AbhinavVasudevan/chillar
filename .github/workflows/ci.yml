@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Unit tests
+        run: ./scripts/test.sh
+      - name: Release build (ad-hoc signed, sandboxed)
+        run: ./build.sh
+      - name: Verify sandbox and no dev tooling in release
+        run: |
+          codesign -d --entitlements - build/Chillar.app 2>&1 | grep -q com.apple.security.app-sandbox
+          ! strings build/Chillar.app/Contents/MacOS/Chillar | grep -q -- "--snapshot"
+      - name: Dev build compiles
+        run: ./build.sh dev

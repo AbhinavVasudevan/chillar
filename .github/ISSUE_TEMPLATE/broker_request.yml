@@ -1,0 +1,20 @@
+name: Broker support
+description: Request (or offer to build) an adapter for another broker
+labels: [broker]
+body:
+  - type: input
+    id: broker
+    attributes:
+      label: Broker
+      placeholder: Zerodha (Kite Connect)
+    validations:
+      required: true
+  - type: input
+    id: docs
+    attributes:
+      label: Link to the broker's API docs
+  - type: dropdown
+    id: help
+    attributes:
+      label: Can you help build or test it?
+      options: ["Yes, I can write the adapter", "I can test it with my account", "Just requesting"]

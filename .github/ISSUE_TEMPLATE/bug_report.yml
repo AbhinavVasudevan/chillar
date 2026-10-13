@@ -1,0 +1,37 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste an access token, client ID, or screenshots showing your account details.**
+        For security issues, use private reporting instead (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: input
+    id: broker
+    attributes:
+      label: Broker
+      placeholder: Dhan
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "15.4"
+  - type: input
+    id: version
+    attributes:
+      label: Chillar version or commit
+  - type: textarea
+    id: position
+    attributes:
+      label: Position type (if relevant)
+      description: e.g. "carried-forward long CE, NSE_FNO, MARGIN". No account details.
