@@ -19,6 +19,9 @@ struct Position: Identifiable, Equatable {
     let sellValue: Double
     let realized: Double
     let unrealized: Double
+    /// Premium still held from buys on earlier days. Brokers count today's buys as margin used,
+    /// but premium paid before today is already settled and missing from that figure.
+    let carriedCost: Double
     /// Contract multiplier. Only 1 is marked to live prices; anything else uses broker P&L.
     let multiplier: Double
     /// Last price derived from the broker's P&L, for accounts without a market-data feed.

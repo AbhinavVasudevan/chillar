@@ -72,6 +72,16 @@ struct Tests {
         check(near(long.pnl(ltp: nil), 250), "no live price: broker P&L")
         check(near(long.pnl(ltp: 12.5), 250), "live price: sell − buy + qty × ltp")
 
+        // MARK: Carried premium (missing from the broker's margin used)
+        let cf = ["netQty": 1600, "carryForwardBuyQty": 1600, "carryForwardBuyValue": 14080.0, "dayBuyValue": 0.0] as [String: Any]
+        check(near(try DhanBroker.decodePositions(row(cf))[0].carriedCost, 14080), "carried long option: full carry-forward cost")
+        check(near(try DhanBroker.decodePositions(row(cf.merging(["netQty": 800]) { $1 }))[0].carriedCost, 7040),
+              "partly sold: only the quantity still held")
+        check(near(try DhanBroker.decodePositions(row(cf.merging(["netQty": 0]) { $1 }))[0].carriedCost, 0), "closed: nothing carried")
+        check(near(try DhanBroker.decodePositions(row(["netQty": 100]))[0].carriedCost, 0), "bought today: counted by broker margin")
+        check(near(try DhanBroker.decodePositions(row(cf.merging(["drvOptionType": "XX"]) { $1 }))[0].carriedCost, 0),
+              "futures are margined daily, not carried")
+
         // MARK: Orders
         check(OrderSummary(orderId: "1", instrumentKey: "k", status: "PENDING", tag: nil).isWorking, "pending is working")
         check(!OrderSummary(orderId: "1", instrumentKey: "k", status: "TRADED", tag: nil).isWorking, "traded isn't working")

@@ -281,6 +281,10 @@ final class Store: ObservableObject {
     }
 
     private func apply(_ fresh: [Position]) {
+        // A fill moves the balance: fetch funds now instead of waiting up to 30s.
+        if fresh.map(\.netQty) != positions.map(\.netQty) || fresh.map(\.id) != positions.map(\.id) {
+            lastFunds = .distantPast
+        }
         positions = fresh
         // Forget exit status once a position's quantity changes, so it can be closed again later.
         for (id, qty) in closeQty where fresh.first(where: { $0.id == id })?.netQty != qty {
@@ -476,12 +480,17 @@ final class Store: ObservableObject {
     var dayHigh: Double? { dayRange.high }
     var dayLow: Double? { dayRange.low }
 
-    /// Return on capital in use: the larger of margin utilised and premium paid.
+    /// Capital in use: the broker's margin used today plus premium still held from earlier days,
+    /// which the broker has already settled and leaves out (else "Used" shows just today's charges).
+    var capitalUsed: Double? {
+        guard let f = funds else { return nil }
+        return f.used + positions.reduce(0) { $0 + $1.carriedCost }
+    }
+
+    /// Return on capital: the larger of capital in use and premium paid today, so a position
+    /// closed during the day still counts towards the base.
     var returnPct: Double? {
-        // Dhan debits option-buy premium from the balance rather than counting it as margin, so
-        // "used" can be just charges (e.g. ₹62 against ₹14k of premium); sellers are the reverse.
-        let used = funds?.used ?? 0
-        let base = max(used, positions.reduce(0) { $0 + $1.buyValue })
+        let base = max(capitalUsed ?? 0, positions.reduce(0) { $0 + $1.buyValue })
         return base > 0 ? totalPnL / base * 100 : nil
     }
 

@@ -84,8 +84,8 @@ struct PanelView: View {
                 Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange).help(e)
             }
             Spacer()
-            if let f = store.funds {
-                Text("Avail \(Fmt.rupees(f.available)) · Used \(Fmt.rupees(f.used))").monospacedDigit()
+            if let f = store.funds, let used = store.capitalUsed {
+                Text("Avail \(Fmt.rupees(f.available)) · Used \(Fmt.rupees(used))").monospacedDigit()
                     .lineLimit(1).minimumScaleFactor(0.85)
             }
             Button { NSApp.activate(); openSettings() } label: { Image(systemName: "gearshape") }
