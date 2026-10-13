@@ -188,6 +188,8 @@ private struct DhanPosition: Decodable {
     let realizedProfit: Double?
     let unrealizedProfit: Double?
     let multiplier: Double?
+    let carryForwardBuyQty: Double?
+    let carryForwardSellQty: Double?
     let carryForwardBuyValue: Double?
     let carryForwardSellValue: Double?
     let dayBuyValue: Double?
@@ -216,6 +218,13 @@ private struct DhanPosition: Decodable {
         if unitPriced, qty != 0, let cost = costPrice, cost > 0, let u = unrealizedProfit {
             implied = cost + u / Double(qty)
         }
+        // Long options/equity carried from earlier days: the part still held, at its carry-forward cost.
+        // Futures and shorts are margined every day, so the broker's margin used already covers them.
+        var carried = 0.0
+        if qty > 0, tag != "FUT", let cfQty = carryForwardBuyQty, cfQty > 0, let cfValue = carryForwardBuyValue {
+            let held = min(Double(qty), max(0, cfQty - (carryForwardSellQty ?? 0)))
+            carried = held * cfValue / cfQty
+        }
         return Position(
             id: "\(exchangeSegment)-\(securityId)-\(productType ?? "")",
             symbol: tradingSymbol,
@@ -229,6 +238,7 @@ private struct DhanPosition: Decodable {
             sellValue: (daySellValue ?? 0) + (carryForwardSellValue ?? 0),
             realized: realizedProfit ?? 0,
             unrealized: unrealizedProfit ?? 0,
+            carriedCost: carried,
             multiplier: mult,
             impliedPrice: implied,
             exitable: ["NSE_FNO", "BSE_FNO"].contains(exchangeSegment) && productType != nil,
